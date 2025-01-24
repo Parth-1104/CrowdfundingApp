@@ -7,7 +7,7 @@ contract CrowdFunding{
         string title;
         string description;
         uint256 target;
-        unit256 deadline;
+        uint256 deadline;
         uint256 amountCollected;
         address[] donators;
         uint256[] donations;
@@ -34,10 +34,26 @@ contract CrowdFunding{
 
     function donateToCampaign(uint256 _id) public payable{
         uint256 amount=msg.value;
-        Campaign storage campaign=campaign[_id];
-        Campaign.donators.push(msg.sender);
-        Campaign.donators.push(msg.sender);
-        
+        Campaign storage campaign=campaigns[_id];
+        campaign.donators.push(msg.sender);
+        campaign.donations.push(amount);
+        (bool sent,) = payable(campaign.owner).call{value: amount}("");
+        if(sent) {
+            campaign.amountCollected+=amount;
+        }
 
+    }
+
+    function getDonators(uint256 _id) public view returns(address[] memory, uint256[] memory){
+        return (campaigns[_id].donators, campaigns[_id].donations);
+    }
+
+    function getCampaigns() public view returns(Campaign[] memory){
+        Campaign[] memory allCampaigns=new Campaign[](numberofCampaigns);
+        for(uint i = 0; i < numberofCampaigns; i++){
+            Campaign storage item = campaigns[i];
+            allCampaigns[i] = item;
+        }
+        return allCampaigns;
     }
 }
